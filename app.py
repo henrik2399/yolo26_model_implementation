@@ -772,3 +772,41 @@ with tab_stats:
                     padding:0.75rem 1rem;margin-top:1.2rem;font-size:0.78rem;color:#888;">
           Statistiken beziehen sich auf die aktuelle Browser-Session.
         </div>""", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════════════════════════
+#  DEBUGGING AREA (Wird nur angezeigt, wenn ein Bild geladen ist)
+# ══════════════════════════════════════════════════════════════
+if raw and pil_img:
+    st.markdown('<div class="sec-label">🛠️ KI-Debugging (Rohdaten)</div>', unsafe_allow_html=True)
+    
+    # Modell erneut kurz ansprechen für detaillierte Liste
+    model, _ = load_model()
+    if model:
+        import numpy as np
+        arr = np.array(pil_img.convert("RGB"))
+        debug_results = model(arr, verbose=False)
+        
+        if debug_results and len(debug_results[0].boxes) > 0:
+            boxes = debug_results[0].boxes
+            st.write("Erkannte Objekte im Bild:")
+            
+            # Tabelle für bessere Übersicht
+            debug_data = []
+            for box in boxes:
+                c_id = int(box.cls[0])
+                c_en = model.names[c_id]
+                c_conf = float(box.conf[0])
+                c_de = LABEL_DE.get(c_en, c_en)
+                c_cat = YOLO_TO_CATEGORY.get(c_en, "Sonstiges")
+                
+                debug_data.append({
+                    "Objekt (DE)": c_de,
+                    "Kategorie": c_cat,
+                    "Konfidenz": f"{round(c_conf * 100, 1)}%",
+                    "YOLO-Label": c_en
+                })
+            
+            st.table(pd.DataFrame(debug_data))
+        else:
+            st.warning("Die KI sieht aktuell gar nichts (keine Boxen über dem Schwellenwert).")
+            st.info("Tipp: Achte auf gute Beleuchtung und dass das Objekt zentral im Bild ist.")
