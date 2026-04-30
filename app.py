@@ -31,11 +31,11 @@ st.set_page_config(
 #  SESSION STATE INITIALISIEREN
 # ══════════════════════════════════════════════════════════════
 if "items" not in st.session_state:
-    st.session_state.items = []          # Liste aller Fundobjekte
+    st.session_state["items"] = []          # Liste aller Fundobjekte
 
 
 def add_item(label, category, location, description, image_bytes, confidence):
-    st.session_state.items.append({
+    st.session_state["items"].append({
         "id":          str(uuid.uuid4()),
         "label":       label,
         "category":    category,
@@ -49,7 +49,7 @@ def add_item(label, category, location, description, image_bytes, confidence):
 
 
 def claim_item(item_id):
-    for item in st.session_state.items:
+    for item in st.session_state["items"]:
         if item["id"] == item_id:
             item["is_claimed"] = True
             item["claimed_at"] = datetime.now().strftime("%d.%m.%Y %H:%M")
@@ -57,8 +57,8 @@ def claim_item(item_id):
 
 
 def get_counts():
-    total   = len(st.session_state.items)
-    claimed = sum(1 for i in st.session_state.items if i["is_claimed"])
+    total   = len(st.session_state["items"])
+    claimed = sum(1 for i in st.session_state["items"] if i["is_claimed"])
     return {"total": total, "claimed": claimed, "missing": total - claimed}
 
 
@@ -440,7 +440,7 @@ with tab_search:
     show_claimed = st.checkbox("Bereits abgeholte Objekte anzeigen", value=False)
 
     # Filtern
-    items = st.session_state.items
+    items = st.session_state["items"]
     if not show_claimed:
         items = [i for i in items if not i["is_claimed"]]
     if cat_filter != "Alle":
@@ -627,7 +627,7 @@ with tab_add:
 #  TAB: STATISTIKEN
 # ─────────────────────────────────────────────────────────────
 with tab_stats:
-    all_items = st.session_state.items
+    all_items = st.session_state["items"]
 
     if not all_items:
         st.markdown("""
